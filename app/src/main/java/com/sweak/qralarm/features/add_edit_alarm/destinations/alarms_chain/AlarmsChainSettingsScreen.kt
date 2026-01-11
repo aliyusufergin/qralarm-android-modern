@@ -36,8 +36,7 @@ import com.sweak.qralarm.features.add_edit_alarm.destinations.alarms_chain.compo
 @Composable
 fun AlarmsChainSettingsScreen(
     addEditAlarmViewModel: AddEditAlarmViewModel,
-    onCancelClicked: () -> Unit,
-    onRedirectToQRAlarmPro: () -> Unit
+    onCancelClicked: () -> Unit
 ) {
     val addEditAlarmScreenState by addEditAlarmViewModel.state.collectAsStateWithLifecycle()
 
@@ -49,7 +48,7 @@ fun AlarmsChainSettingsScreen(
                     onCancelClicked()
                 }
                 is AlarmsChainSettingsScreenUserEvent.AddNewChainedAlarmClicked -> {
-                    onRedirectToQRAlarmPro()
+                    // Alarms chain feature - coming soon
                 }
             }
         }

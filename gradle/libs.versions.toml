@@ -20,6 +20,7 @@ zxing = "3.5.4"
 datastorePreferences = "1.2.0"
 accompanist-permissions = "0.37.3"
 desugarJdkLibs = "2.1.5"
+material = "1.13.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -58,6 +59,7 @@ io-coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "
 io-coil-gif = { group = "io.coil-kt", name = "coil-gif", version.ref = "coil" }
 
 desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }
+google-android-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

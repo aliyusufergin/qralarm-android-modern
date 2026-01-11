@@ -18,33 +18,38 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sweak.qralarm.R
 import com.sweak.qralarm.core.designsystem.component.QRAlarmCard
 import com.sweak.qralarm.core.designsystem.icon.QRAlarmIcons
 import com.sweak.qralarm.core.designsystem.theme.QRAlarmTheme
 import com.sweak.qralarm.core.designsystem.theme.space
+import com.sweak.qralarm.features.add_edit_alarm.AddEditAlarmFlowState
 import com.sweak.qralarm.features.add_edit_alarm.AddEditAlarmFlowUserEvent.SpecialAlarmSettingsScreenUserEvent
+import com.sweak.qralarm.features.add_edit_alarm.AddEditAlarmViewModel
 import com.sweak.qralarm.features.add_edit_alarm.components.ToggleSetting
 
 @Composable
 fun SpecialAlarmSettingsScreen(
-    onCancelClicked: () -> Unit,
-    onRedirectToQRAlarmPro: () -> Unit
+    addEditAlarmViewModel: AddEditAlarmViewModel,
+    onCancelClicked: () -> Unit
 ) {
+    val addEditAlarmScreenState by addEditAlarmViewModel.state.collectAsStateWithLifecycle()
+
     SpecialAlarmSettingsScreenContent(
+        state = addEditAlarmScreenState,
         onEvent = { event ->
             when (event) {
                 is SpecialAlarmSettingsScreenUserEvent.OnCancelClicked -> {
                     onCancelClicked()
                 }
-                is SpecialAlarmSettingsScreenUserEvent.TryUseSpecialAlarmSettings -> {
-                    onRedirectToQRAlarmPro()
-                }
+                else -> addEditAlarmViewModel.onEvent(event)
             }
         }
     )
@@ -53,6 +58,7 @@ fun SpecialAlarmSettingsScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SpecialAlarmSettingsScreenContent(
+    state: AddEditAlarmFlowState,
     onEvent: (SpecialAlarmSettingsScreenUserEvent) -> Unit
 ) {
     Scaffold(
@@ -107,9 +113,9 @@ fun SpecialAlarmSettingsScreenContent(
                         )
                 ) {
                     ToggleSetting(
-                        isChecked = false,
+                        isChecked = state.isDoNotLeaveAlarmEnabled,
                         onCheckedChange = {
-                            onEvent(SpecialAlarmSettingsScreenUserEvent.TryUseSpecialAlarmSettings)
+                            onEvent(SpecialAlarmSettingsScreenUserEvent.DoNotLeaveAlarmEnabledChanged(it))
                         },
                         title = stringResource(R.string.do_not_leave_alarm),
                         description = stringResource(R.string.do_not_leave_alarm_description)
@@ -122,9 +128,9 @@ fun SpecialAlarmSettingsScreenContent(
                     )
 
                     ToggleSetting(
-                        isChecked = false,
+                        isChecked = state.isPowerOffGuardEnabled,
                         onCheckedChange = {
-                            onEvent(SpecialAlarmSettingsScreenUserEvent.TryUseSpecialAlarmSettings)
+                            onEvent(SpecialAlarmSettingsScreenUserEvent.PowerOffGuardEnabledChanged(it))
                         },
                         title = stringResource(R.string.power_off_guard),
                         description = stringResource(R.string.power_off_guard_description)
@@ -137,9 +143,9 @@ fun SpecialAlarmSettingsScreenContent(
                     )
 
                     ToggleSetting(
-                        isChecked = false,
+                        isChecked = state.isBlockVolumeDownEnabled,
                         onCheckedChange = {
-                            onEvent(SpecialAlarmSettingsScreenUserEvent.TryUseSpecialAlarmSettings)
+                            onEvent(SpecialAlarmSettingsScreenUserEvent.BlockVolumeDownEnabledChanged(it))
                         },
                         title = stringResource(R.string.block_volume_down),
                         description = stringResource(R.string.block_volume_down_description)
@@ -152,9 +158,9 @@ fun SpecialAlarmSettingsScreenContent(
                     )
 
                     ToggleSetting(
-                        isChecked = false,
+                        isChecked = state.isKeepRingerOnEnabled,
                         onCheckedChange = {
-                            onEvent(SpecialAlarmSettingsScreenUserEvent.TryUseSpecialAlarmSettings)
+                            onEvent(SpecialAlarmSettingsScreenUserEvent.KeepRingerOnEnabledChanged(it))
                         },
                         title = stringResource(R.string.keep_ringer_on),
                         description = stringResource(R.string.keep_ringer_on_description)
@@ -170,6 +176,13 @@ fun SpecialAlarmSettingsScreenContent(
 private fun SpecialAlarmSettingsScreenContentPreview() {
     QRAlarmTheme {
         SpecialAlarmSettingsScreenContent(
+            state = AddEditAlarmFlowState(
+                isLoading = false,
+                isDoNotLeaveAlarmEnabled = true,
+                isPowerOffGuardEnabled = false,
+                isBlockVolumeDownEnabled = true,
+                isKeepRingerOnEnabled = false
+            ),
             onEvent = {}
         )
     }

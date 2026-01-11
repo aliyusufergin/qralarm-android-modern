@@ -54,6 +54,10 @@ data class AddEditAlarmFlowState(
     val availableTemporaryMuteDurationsInSeconds: List<Int> =
         AVAILABLE_TEMPORARY_MUTE_DURATIONS_IN_SECONDS,
     val isChooseTemporaryMuteDurationDialogVisible: Boolean = false,
+    val isDoNotLeaveAlarmEnabled: Boolean = false,
+    val isPowerOffGuardEnabled: Boolean = false,
+    val isBlockVolumeDownEnabled: Boolean = false,
+    val isKeepRingerOnEnabled: Boolean = false,
     val permissionsDialogState: PermissionsDialogState = PermissionsDialogState(),
     val isDeleteAlarmDialogVisible: Boolean = false,
     val isDiscardAlarmChangesDialogVisible: Boolean = false,

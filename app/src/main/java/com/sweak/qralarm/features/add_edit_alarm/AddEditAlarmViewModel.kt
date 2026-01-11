@@ -23,6 +23,7 @@ import com.sweak.qralarm.core.ui.model.AlarmRepeatingScheduleWrapper.AlarmRepeat
 import com.sweak.qralarm.core.ui.sound.AlarmRingtonePlayer
 import com.sweak.qralarm.features.add_edit_alarm.AddEditAlarmFlowUserEvent.AddEditAlarmScreenUserEvent
 import com.sweak.qralarm.features.add_edit_alarm.AddEditAlarmFlowUserEvent.AdvancedAlarmSettingsScreenUserEvent
+import com.sweak.qralarm.features.add_edit_alarm.AddEditAlarmFlowUserEvent.SpecialAlarmSettingsScreenUserEvent
 import com.sweak.qralarm.features.add_edit_alarm.navigation.ID_OF_ALARM_TO_EDIT
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -138,7 +139,11 @@ class AddEditAlarmViewModel @Inject constructor(
                             isEmergencyTaskEnabled = alarm.isEmergencyTaskEnabled,
                             alarmLabel = alarm.alarmLabel,
                             gentleWakeupDurationInSeconds = alarm.gentleWakeUpDurationInSeconds,
-                            temporaryMuteDurationInSeconds = alarm.temporaryMuteDurationInSeconds
+                            temporaryMuteDurationInSeconds = alarm.temporaryMuteDurationInSeconds,
+                            isDoNotLeaveAlarmEnabled = alarm.isDoNotLeaveAlarmEnabled,
+                            isPowerOffGuardEnabled = alarm.isPowerOffGuardEnabled,
+                            isBlockVolumeDownEnabled = alarm.isBlockVolumeDownEnabled,
+                            isKeepRingerOnEnabled = alarm.isKeepRingerOnEnabled
                         )
                     }
                 }
@@ -589,6 +594,30 @@ class AddEditAlarmViewModel @Inject constructor(
                     currentState.copy(isDownloadCodeDialogVisible = event.isVisible)
                 }
             }
+            is SpecialAlarmSettingsScreenUserEvent.DoNotLeaveAlarmEnabledChanged -> {
+                hasUnsavedChanges = true
+                _state.update { currentState ->
+                    currentState.copy(isDoNotLeaveAlarmEnabled = event.isEnabled)
+                }
+            }
+            is SpecialAlarmSettingsScreenUserEvent.PowerOffGuardEnabledChanged -> {
+                hasUnsavedChanges = true
+                _state.update { currentState ->
+                    currentState.copy(isPowerOffGuardEnabled = event.isEnabled)
+                }
+            }
+            is SpecialAlarmSettingsScreenUserEvent.BlockVolumeDownEnabledChanged -> {
+                hasUnsavedChanges = true
+                _state.update { currentState ->
+                    currentState.copy(isBlockVolumeDownEnabled = event.isEnabled)
+                }
+            }
+            is SpecialAlarmSettingsScreenUserEvent.KeepRingerOnEnabledChanged -> {
+                hasUnsavedChanges = true
+                _state.update { currentState ->
+                    currentState.copy(isKeepRingerOnEnabled = event.isEnabled)
+                }
+            }
             else -> { /* no-op */ }
         }
     }
@@ -687,7 +716,11 @@ class AddEditAlarmViewModel @Inject constructor(
                 alarmLabel = currentState.alarmLabel,
                 gentleWakeUpDurationInSeconds = currentState.gentleWakeupDurationInSeconds,
                 temporaryMuteDurationInSeconds = currentState.temporaryMuteDurationInSeconds,
-                skipAlarmUntilTimeInMillis = null
+                skipAlarmUntilTimeInMillis = null,
+                isDoNotLeaveAlarmEnabled = currentState.isDoNotLeaveAlarmEnabled,
+                isPowerOffGuardEnabled = currentState.isPowerOffGuardEnabled,
+                isBlockVolumeDownEnabled = currentState.isBlockVolumeDownEnabled,
+                isKeepRingerOnEnabled = currentState.isKeepRingerOnEnabled
             )
 
             val alarmId = alarmsRepository.addOrEditAlarm(alarm = alarmToSave).run {

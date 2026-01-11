@@ -6,6 +6,7 @@ import com.sweak.qralarm.alarm.service.AlarmService
 import com.sweak.qralarm.core.domain.alarm.AlarmsRepository
 import com.sweak.qralarm.core.domain.alarm.RescheduleAlarms
 import com.sweak.qralarm.core.domain.user.UserDataRepository
+import com.sweak.qralarm.core.storage.datastore.QRAlarmPreferencesDataSource
 import com.sweak.qralarm.features.emergency.settings.util.EMERGENCY_AVAILABLE_REQUIRED_MATCHES
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -15,14 +16,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.ZonedDateTime
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val alarmsRepository: AlarmsRepository,
-    private val rescheduleAlarms: RescheduleAlarms
+    private val rescheduleAlarms: RescheduleAlarms,
+    private val preferencesDataSource: QRAlarmPreferencesDataSource
 ) : ViewModel() {
 
     private var _state = MutableStateFlow(MainActivityState())
@@ -35,13 +36,21 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             rescheduleAlarms()
             migrateToNewEmergencyRequiredMatches()
-            handleRatePromptTime()
 
             _state.update { currentState ->
                 currentState.copy(
                     shouldShowSplashScreen = false,
                     isIntroductionFinished = userDataRepository.isIntroductionFinished.first()
                 )
+            }
+        }
+
+        // Observe theme mode changes
+        viewModelScope.launch {
+            preferencesDataSource.getThemeMode().collect { themeMode ->
+                _state.update { currentState ->
+                    currentState.copy(themeMode = themeMode)
+                }
             }
         }
     }
@@ -53,20 +62,6 @@ class MainViewModel @Inject constructor(
             userDataRepository.setEmergencyRequiredMatches(
                 matches = EMERGENCY_AVAILABLE_REQUIRED_MATCHES.last()
             )
-        }
-    }
-
-    private suspend fun handleRatePromptTime() {
-        val nextRatePromptTimeInMillis = ZonedDateTime.now().plusDays(7).toInstant().toEpochMilli()
-
-        if (userDataRepository.nextRatePromptTimeInMillis.first() == null) {
-            userDataRepository.setNextRatePromptTimeInMillis(
-                promptTime = nextRatePromptTimeInMillis
-            )
-        }
-
-        _state.update { currentState ->
-            currentState.copy(rateQRAlarmPromptTimeInMillis = nextRatePromptTimeInMillis)
         }
     }
 
@@ -94,13 +89,7 @@ class MainViewModel @Inject constructor(
                 }
             }
             is MainActivityUserEvent.OnAlarmSaved -> {
-                state.value.rateQRAlarmPromptTimeInMillis?.let {
-                    if (it != 0L && it <= System.currentTimeMillis()) {
-                        viewModelScope.launch {
-                            backendEventsChannel.send(MainActivityBackendEvent.ShowRatePrompt)
-                        }
-                    }
-                }
+                // Alarm saved event handling - can be extended for other features
             }
         }
     }

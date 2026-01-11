@@ -124,6 +124,18 @@ class QRAlarmPreferencesDataSource @Inject constructor(
         }
     }
 
+    suspend fun setThemeMode(mode: Int) {
+        dataStore.edit { preferences ->
+            preferences[THEME_MODE] = mode
+        }
+    }
+
+    fun getThemeMode(): Flow<Int> {
+        return dataStore.data.map { preferences ->
+            preferences[THEME_MODE] ?: 0 // 0 = System default
+        }
+    }
+
     companion object {
         val TEMPORARY_SCANNED_CODE = stringPreferencesKey("temporaryScannedCode")
         val OPTIMIZATION_GUIDE_STATE = stringPreferencesKey("optimizationGuideState")
@@ -133,5 +145,6 @@ class QRAlarmPreferencesDataSource @Inject constructor(
         val DEFAULT_ALARM_CODE = stringPreferencesKey("defaultAlarmCode")
         val EMERGENCY_SLIDER_RANGE = byteArrayPreferencesKey("emergencySliderRange")
         val EMERGENCY_REQUIRED_MATCHES = intPreferencesKey("emergencyRequiredMatches")
+        val THEME_MODE = intPreferencesKey("themeMode")
     }
 }

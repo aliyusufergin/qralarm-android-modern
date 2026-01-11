@@ -59,6 +59,21 @@ class AlarmService : Service() {
     private var emergencyTaskAlarmMuteJob: Job? = null
     private var hasAlarmBeenAlreadyTemporarilyMuted = false
     private var originalSystemAlarmVolume: Int? = null
+    private var originalRingerMode: Int? = null
+    private var targetVolumeLevel: Int = 0
+
+    private val volumeContentObserver by lazy {
+        object : android.database.ContentObserver(android.os.Handler(mainLooper)) {
+            override fun onChange(selfChange: Boolean) {
+                if (::alarm.isInitialized && alarm.isBlockVolumeDownEnabled) {
+                    val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM)
+                    if (currentVolume < targetVolumeLevel) {
+                        audioManager.setStreamVolume(AudioManager.STREAM_ALARM, targetVolumeLevel, 0)
+                    }
+                }
+            }
+        }
+    }
 
     private val temporaryAlarmMuteReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -187,7 +202,11 @@ class AlarmService : Service() {
 
             handleAlarmRescheduling()
 
+            handleKeepRingerOn()
+
             adjustAlarmVolume()
+
+            registerVolumeObserver()
 
             withContext(Dispatchers.Main) {
                 startAlarm()
@@ -195,6 +214,26 @@ class AlarmService : Service() {
         }
 
         return START_NOT_STICKY
+    }
+
+    private fun handleKeepRingerOn() {
+        if (alarm.isKeepRingerOnEnabled) {
+            originalRingerMode = audioManager.ringerMode
+            if (audioManager.ringerMode != AudioManager.RINGER_MODE_NORMAL) {
+                audioManager.ringerMode = AudioManager.RINGER_MODE_NORMAL
+            }
+        }
+    }
+
+    private fun registerVolumeObserver() {
+        if (alarm.isBlockVolumeDownEnabled) {
+            targetVolumeLevel = audioManager.getStreamVolume(AudioManager.STREAM_ALARM)
+            contentResolver.registerContentObserver(
+                android.provider.Settings.System.CONTENT_URI,
+                true,
+                volumeContentObserver
+            )
+        }
     }
 
     @SuppressLint("FullScreenIntentPolicy")
@@ -314,6 +353,13 @@ class AlarmService : Service() {
             unregisterReceiver(emergencyTaskAlarmMuteReceiver)
         } catch (_: IllegalArgumentException) { /* no-op */ }
 
+        // Unregister volume observer if it was registered
+        if (::alarm.isInitialized && alarm.isBlockVolumeDownEnabled) {
+            try {
+                contentResolver.unregisterContentObserver(volumeContentObserver)
+            } catch (_: IllegalArgumentException) { /* no-op */ }
+        }
+
         alarmRingtonePlayer.apply {
             stop()
             onDestroy()
@@ -321,6 +367,11 @@ class AlarmService : Service() {
 
         originalSystemAlarmVolume?.let {
             audioManager.setStreamVolume(AudioManager.STREAM_ALARM, it, 0)
+        }
+
+        // Restore original ringer mode if it was changed
+        originalRingerMode?.let {
+            audioManager.ringerMode = it
         }
 
         serviceScope.cancel()

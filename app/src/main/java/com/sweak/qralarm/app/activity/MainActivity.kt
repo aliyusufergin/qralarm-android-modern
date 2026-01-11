@@ -38,10 +38,8 @@ import com.sweak.qralarm.features.menu.navigation.menuScreen
 import com.sweak.qralarm.features.menu.navigation.navigateToMenu
 import com.sweak.qralarm.features.optimization.navigation.navigateToOptimization
 import com.sweak.qralarm.features.optimization.navigation.optimizationScreen
-import com.sweak.qralarm.features.qralarm_pro.navigation.navigateToQRAlarmPro
-import com.sweak.qralarm.features.qralarm_pro.navigation.qralarmProScreen
-import com.sweak.qralarm.features.rate.navigation.navigateToRate
-import com.sweak.qralarm.features.rate.navigation.rateScreen
+import com.sweak.qralarm.features.appearance.navigation.appearanceScreen
+import com.sweak.qralarm.features.appearance.navigation.navigateToAppearance
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -83,14 +81,17 @@ class MainActivity : FragmentActivity() {
                                 }
                             )
                         }
-                        is MainActivityBackendEvent.ShowRatePrompt -> {
-                            navController.navigateToRate()
-                        }
                     }
                 }
             )
 
-            QRAlarmTheme {
+            val darkTheme = when (state.themeMode) {
+                1 -> false // Light
+                2 -> true  // Dark
+                else -> androidx.compose.foundation.isSystemInDarkTheme() // System default
+            }
+
+            QRAlarmTheme(darkTheme = darkTheme) {
                 val isIntroductionFinished = state.isIntroductionFinished
 
                 if (isIntroductionFinished != null) {
@@ -158,9 +159,6 @@ class MainActivity : FragmentActivity() {
                             },
                             onAlarmDeleted = {
                                 navController.popBackStack()
-                            },
-                            onRedirectToQRAlarmPro = {
-                                navController.navigateToQRAlarmPro()
                             }
                         )
 
@@ -199,11 +197,8 @@ class MainActivity : FragmentActivity() {
                             onEmergencyTaskSettingsClicked = {
                                 navController.navigateToEmergencySettings()
                             },
-                            onQRAlarmProClicked = {
-                                navController.navigateToQRAlarmPro()
-                            },
-                            onRateQRAlarmClicked = {
-                                navController.navigateToRate()
+                            onAppearanceClicked = {
+                                navController.navigateToAppearance()
                             },
                             onScanDefaultCodeClicked = {
                                 navController.navigateToCustomCodeScanner(
@@ -225,14 +220,8 @@ class MainActivity : FragmentActivity() {
                             }
                         )
 
-                        qralarmProScreen(
-                            onNotNowClicked = {
-                                navController.navigateUp()
-                            }
-                        )
-
-                        rateScreen(
-                            onExit = {
+                        appearanceScreen(
+                            onBackClicked = {
                                 navController.navigateUp()
                             }
                         )

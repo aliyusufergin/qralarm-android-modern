@@ -33,8 +33,7 @@ fun NavGraphBuilder.addEditAlarmFlow(
     onCancelClicked: () -> Unit,
     onAlarmSaved: () -> Unit,
     onScanCustomCodeClicked: () -> Unit,
-    onAlarmDeleted: () -> Unit,
-    onRedirectToQRAlarmPro: () -> Unit
+    onAlarmDeleted: () -> Unit
 ) {
     navigation(
         route = "$ADD_EDIT_ALARM_FLOW_ROUTE/{$ID_OF_ALARM_TO_EDIT}",
@@ -84,11 +83,16 @@ fun NavGraphBuilder.addEditAlarmFlow(
         }
 
         composable(route = SPECIAL_ALARM_SETTINGS_SCREEN_ROUTE) {
+            val parentEntry = remember(it) {
+                navController.getBackStackEntry("$ADD_EDIT_ALARM_FLOW_ROUTE/{$ID_OF_ALARM_TO_EDIT}")
+            }
+            val addEditAlarmViewModel = hiltViewModel<AddEditAlarmViewModel>(parentEntry)
+
             SpecialAlarmSettingsScreen(
+                addEditAlarmViewModel = addEditAlarmViewModel,
                 onCancelClicked = {
                     navController.navigateUp()
-                },
-                onRedirectToQRAlarmPro = onRedirectToQRAlarmPro
+                }
             )
         }
 
@@ -102,8 +106,7 @@ fun NavGraphBuilder.addEditAlarmFlow(
                 addEditAlarmViewModel = addEditAlarmViewModel,
                 onCancelClicked = {
                     navController.navigateUp()
-                },
-                onRedirectToQRAlarmPro = onRedirectToQRAlarmPro
+                }
             )
         }
     }

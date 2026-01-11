@@ -10,14 +10,15 @@ import com.sweak.qralarm.core.storage.database.model.AlarmEntity
 
 @Database(
     entities = [AlarmEntity::class],
-    version = 7,
+    version = 8,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
         AutoMigration(from = 4, to = 5),
         AutoMigration(from = 5, to = 6),
-        AutoMigration(from = 6, to = 7)
+        AutoMigration(from = 6, to = 7),
+        AutoMigration(from = 7, to = 8)
     ]
 )
 abstract class QRAlarmDatabase : RoomDatabase() {

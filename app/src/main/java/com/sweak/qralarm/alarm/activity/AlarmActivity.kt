@@ -34,6 +34,8 @@ class AlarmActivity : FragmentActivity() {
 
     private var isLaunchedFromMainActivity: Boolean = false
     private var lastNavigateUpTime: Long = 0L
+    private var isDoNotLeaveAlarmEnabled: Boolean = false
+    private var isPowerOffGuardEnabled: Boolean = false
 
     @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,6 +58,14 @@ class AlarmActivity : FragmentActivity() {
         val alarmId = intent.extras?.getLong(EXTRA_ALARM_ID) ?: 0
         isLaunchedFromMainActivity =
             intent.extras?.getBoolean(EXTRA_LAUNCHED_FROM_MAIN_ACTIVITY) == true
+
+        // Load alarm settings for pro features
+        lifecycleScope.launch {
+            alarmsRepository.getAlarm(alarmId)?.let { alarm ->
+                isDoNotLeaveAlarmEnabled = alarm.isDoNotLeaveAlarmEnabled
+                isPowerOffGuardEnabled = alarm.isPowerOffGuardEnabled
+            }
+        }
 
         setContent {
             QRAlarmTheme {
@@ -233,6 +243,26 @@ class AlarmActivity : FragmentActivity() {
         stopService(
             Intent(this@AlarmActivity, AlarmService::class.java)
         )
+    }
+
+    @Deprecated("Deprecated in Java")
+    @Suppress("DEPRECATION")
+    override fun onBackPressed() {
+        // Do Not Leave Alarm: Block back button when enabled
+        if (isDoNotLeaveAlarmEnabled) {
+            // Do nothing - prevent user from leaving alarm screen via back button
+            return
+        }
+        super.onBackPressed()
+    }
+
+    override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
+        // Power-off Guard: Intercept power button to prevent accidental power off
+        if (isPowerOffGuardEnabled && event.keyCode == android.view.KeyEvent.KEYCODE_POWER) {
+            // Consume the power button event to prevent power menu
+            return true
+        }
+        return super.dispatchKeyEvent(event)
     }
 
     override fun onNewIntent(intent: Intent) {

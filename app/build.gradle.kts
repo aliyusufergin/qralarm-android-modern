@@ -66,6 +66,7 @@ room {
 }
 
 dependencies {
+    implementation(libs.google.android.material)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

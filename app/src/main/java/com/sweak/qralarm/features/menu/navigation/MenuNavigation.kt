@@ -14,8 +14,7 @@ fun NavGraphBuilder.menuScreen(
     onIntroductionClicked: () -> Unit,
     onOptimizationGuideClicked: () -> Unit,
     onEmergencyTaskSettingsClicked: () -> Unit,
-    onQRAlarmProClicked: () -> Unit,
-    onRateQRAlarmClicked: () -> Unit,
+    onAppearanceClicked: () -> Unit,
     onScanDefaultCodeClicked: () -> Unit
 ) {
     composable(route = MENU_SCREEN_ROUTE) {
@@ -24,8 +23,7 @@ fun NavGraphBuilder.menuScreen(
             onIntroductionClicked = onIntroductionClicked,
             onOptimizationGuideClicked = onOptimizationGuideClicked,
             onEmergencyTaskSettingsClicked = onEmergencyTaskSettingsClicked,
-            onQRAlarmProClicked = onQRAlarmProClicked,
-            onRateQRAlarmClicked = onRateQRAlarmClicked,
+            onAppearanceClicked = onAppearanceClicked,
             onScanDefaultCodeClicked = onScanDefaultCodeClicked
         )
     }
