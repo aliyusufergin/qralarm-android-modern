@@ -5,6 +5,7 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -22,6 +23,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -35,8 +40,10 @@ import androidx.core.net.toUri
 import com.sweak.qralarm.R
 import com.sweak.qralarm.core.designsystem.theme.QRAlarmTheme
 import com.sweak.qralarm.core.designsystem.theme.space
+import com.sweak.qralarm.features.qralarm_pro.components.ProductPlanCard
 import com.sweak.qralarm.features.qralarm_pro.components.QRAlarmProFeaturesCarousel
 import com.sweak.qralarm.features.qralarm_pro.components.QRAlarmProFeaturesRows
+import com.sweak.qralarm.features.qralarm_pro.model.QRAlarmProDistributionSource
 
 @Composable
 fun QRAlarmProScreen(
@@ -49,14 +56,15 @@ fun QRAlarmProScreen(
         onEvent = { event ->
             when (event) {
                 is QRAlarmProScreenUserEvent.GetQRAlarmProClicked -> {
-                    val qralarmProPackageName = resources.getString(R.string.qralarm_pro_package_name)
+                    val uri = if (event.qrAlarmProDistributionSource is QRAlarmProDistributionSource.GooglePlay) {
+                        "market://details?id=${resources.getString(R.string.qralarm_pro_package_name)}".toUri()
+                    } else {
+                        "".toUri()// TODO
+                    }
 
                     try {
                         context.startActivity(
-                            Intent(
-                                Intent.ACTION_VIEW,
-                                "market://details?id=$qralarmProPackageName".toUri()
-                            )
+                            Intent(Intent.ACTION_VIEW, uri)
                         )
                     } catch (_: ActivityNotFoundException) {
                         try {
@@ -142,8 +150,58 @@ fun QRAlarmProScreenContent(onEvent: (QRAlarmProScreenUserEvent) -> Unit) {
                     modifier = Modifier.padding(bottom = MaterialTheme.space.xLarge)
                 )
 
+                var selectedQRAlarmProDistributionSource by remember {
+                    mutableStateOf<QRAlarmProDistributionSource>(QRAlarmProDistributionSource.GooglePlay)
+                }
+
+                ProductPlanCard(
+                    title = "Standalone App",// stringResource(R.string.standalone_app),
+                    price = {
+                        Text(
+                            text = "Google Play",
+                            style = MaterialTheme.typography.displaySmall,
+                            modifier = Modifier.basicMarquee()
+                        )
+                    },
+                    selected = selectedQRAlarmProDistributionSource is QRAlarmProDistributionSource.GooglePlay,
+                    enabled = true,
+                    onClick = { selectedQRAlarmProDistributionSource = QRAlarmProDistributionSource.GooglePlay },
+                    modifier = Modifier
+                        .padding(
+                            start = MaterialTheme.space.medium,
+                            end = MaterialTheme.space.medium,
+                            bottom = MaterialTheme.space.medium
+                        )
+                )
+
+                ProductPlanCard(
+                    title = "Standalone App",// stringResource(R.string.standalone_app),
+                    price = {
+                        Text(
+                            text = "itch.io",
+                            style = MaterialTheme.typography.displaySmall,
+                            modifier = Modifier.basicMarquee()
+                        )
+                    },
+                    selected = selectedQRAlarmProDistributionSource is QRAlarmProDistributionSource.ItchIo,
+                    enabled = true,
+                    onClick = { selectedQRAlarmProDistributionSource = QRAlarmProDistributionSource.ItchIo },
+                    modifier = Modifier
+                        .padding(
+                            start = MaterialTheme.space.medium,
+                            end = MaterialTheme.space.medium,
+                            bottom = MaterialTheme.space.xLarge
+                        )
+                )
+
                 Button(
-                    onClick = { onEvent(QRAlarmProScreenUserEvent.GetQRAlarmProClicked) },
+                    onClick = {
+                        onEvent(
+                            QRAlarmProScreenUserEvent.GetQRAlarmProClicked(
+                                qrAlarmProDistributionSource = selectedQRAlarmProDistributionSource
+                            )
+                        )
+                    },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.tertiary
                     ),
